@@ -8,7 +8,8 @@ class ParticleSystem extends PIXI.Container {
 
 		Math.random()
 		this.particles = [];
-		for (let i = 0; i < 100; i++) {
+		let count = 100;
+		for (let i = 0; i < count; i++) {
 			let particle = game.sprite("CoinsGold000");
 			particle.pivot.x = particle.width / 2;
 			particle.pivot.y = particle.height / 2;
@@ -16,27 +17,35 @@ class ParticleSystem extends PIXI.Container {
 			this.particles.push(particle);
 
 			let angle = Math.random() * Math.PI * 2;
+			let radius = Math.random() * 50;
+			particle.initialPosition = [400 + Math.cos(angle) * radius, 225 + Math.sin(angle) * radius];
+
 			let speed = Math.random() * 1 + 0.1;
-			particle.initialVelocity = [Math.cos(angle) * speed, Math.sin(angle) * speed];
+			particle.initialVelocity = [Math.cos(angle) * speed, Math.sin(angle) * speed - 0.2];
+
+			particle.rotation = Math.random() * 2 * Math.PI;
+			particle.angularVelocity = Math.random() * 20 - 10;
+
+			particle.initialSize = 0.5;
+			particle.sizeChange = (i / count - 0.5) * 1.5;
+
+			particle.offset = Math.random();
 		}
 
 		this.gravity = 0.001;
 	}
 	animTick(nt,lt,gt) {
-		let num = ("000"+Math.floor(nt*8)).substr(-3);
-
 		for (let i = 0; i < this.particles.length; i++) {
 			let particle = this.particles[i];
-			particle.x = 400 + lt * particle.initialVelocity[0];
-			particle.y = 225 + lt * particle.initialVelocity[1] + lt * lt * this.gravity;
-		}
+			let num = ("000"+Math.floor(((5 * nt + particle.offset) % 1)*8)).substr(-3);
+			game.setTexture(particle,"CoinsGold"+num);
+			particle.x = particle.initialPosition[0] + lt * particle.initialVelocity[0];
+			particle.y = particle.initialPosition[1] + lt * particle.initialVelocity[1] + lt * lt * this.gravity;
 
-		//game.setTexture(this.sp,"CoinsGold"+num);
-		// this.sp.x = 400 + nt * this.initialVelocity[0];
-		// this.sp.y = 225 + nt * this.initialVelocity[0] + nt * nt * this.gravity;
-		//this.sp.scale.x = this.sp.scale.y = nt;
-		//this.sp.alpha = nt;
-		//this.sp.rotation = nt*Math.PI*2;
+			particle.rotation = nt * particle.angularVelocity;
+
+			particle.scale.x = particle.scale.y = particle.initialSize + nt * particle.sizeChange * particle.sizeChange;
+		}
 	}
 }
 
