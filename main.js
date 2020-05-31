@@ -3,38 +3,40 @@
 class ParticleSystem extends PIXI.Container {
 	constructor() {
 		super();
-		// Set start and duration for this effect in milliseconds
 		this.start    = 0;
-		this.duration = 500;
-		// Create a sprite
-		let sp        = game.sprite("CoinsGold000");
-		// Set pivot to center of said sprite
-		sp.pivot.x    = sp.width/2;
-		sp.pivot.y    = sp.height/2;
-		// Add the sprite particle to our particle effect
-		this.addChild(sp);
-		// Save a reference to the sprite particle
-		this.sp = sp;
+		this.duration = 2000;
+
+		Math.random()
+		this.particles = [];
+		for (let i = 0; i < 100; i++) {
+			let particle = game.sprite("CoinsGold000");
+			particle.pivot.x = particle.width / 2;
+			particle.pivot.y = particle.height / 2;
+			this.addChild(particle);
+			this.particles.push(particle);
+
+			let angle = Math.random() * Math.PI * 2;
+			let speed = Math.random() * 1 + 0.1;
+			particle.initialVelocity = [Math.cos(angle) * speed, Math.sin(angle) * speed];
+		}
+
+		this.gravity = 0.001;
 	}
 	animTick(nt,lt,gt) {
-		// Every update we get three different time variables: nt, lt and gt.
-		//   nt: Normalized time in procentage (0.0 to 1.0) and is calculated by
-		//       just dividing local time with duration of this effect.
-		//   lt: Local time in milliseconds, from 0 to this.duration.
-		//   gt: Global time in milliseconds,
-
-		// Set a new texture on a sprite particle
 		let num = ("000"+Math.floor(nt*8)).substr(-3);
-		game.setTexture(this.sp,"CoinsGold"+num);
-		// Animate position
-		this.sp.x = 400 + nt*400;
-		this.sp.y = 225 + nt*225;
-		// Animate scale
-		this.sp.scale.x = this.sp.scale.y = nt;
-		// Animate alpha
-		this.sp.alpha = nt;
-		// Animate rotation
-		this.sp.rotation = nt*Math.PI*2;
+
+		for (let i = 0; i < this.particles.length; i++) {
+			let particle = this.particles[i];
+			particle.x = 400 + lt * particle.initialVelocity[0];
+			particle.y = 225 + lt * particle.initialVelocity[1] + lt * lt * this.gravity;
+		}
+
+		//game.setTexture(this.sp,"CoinsGold"+num);
+		// this.sp.x = 400 + nt * this.initialVelocity[0];
+		// this.sp.y = 225 + nt * this.initialVelocity[0] + nt * nt * this.gravity;
+		//this.sp.scale.x = this.sp.scale.y = nt;
+		//this.sp.alpha = nt;
+		//this.sp.rotation = nt*Math.PI*2;
 	}
 }
 
