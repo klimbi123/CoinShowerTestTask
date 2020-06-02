@@ -35,6 +35,10 @@ class ParticleSystem extends PIXI.Container {
 		this.gravity = 0.001;
 	}
 	animTick(nt,lt,gt) {
+		//this.explosionTick(nt, lt);
+		this.continuousShowerTick(nt);
+	}
+	explosionTick(nt, lt){
 		for (let i = 0; i < this.particles.length; i++) {
 			let particle = this.particles[i];
 			let num = ("000"+Math.floor(((5 * nt + particle.offset) % 1)*8)).substr(-3);
@@ -45,6 +49,21 @@ class ParticleSystem extends PIXI.Container {
 			particle.rotation = nt * particle.angularVelocity;
 
 			particle.scale.x = particle.scale.y = particle.initialSize + nt * particle.sizeChange * particle.sizeChange;
+		}
+	}
+	continuousShowerTick(nt){
+		for (let i = 0; i < this.particles.length; i++) {
+			let particle = this.particles[i];
+			let pnt = (nt + particle.offset) % 1
+			let plt = this.duration * pnt;
+			let num = ("000"+Math.floor(((5 * pnt) % 1)*8)).substr(-3);
+			game.setTexture(particle,"CoinsGold"+num);
+			particle.x = particle.initialPosition[0] + plt * particle.initialVelocity[0];
+			particle.y = particle.initialPosition[1] + plt * particle.initialVelocity[1] + plt * plt * this.gravity;
+
+			particle.rotation = pnt * particle.angularVelocity;
+
+			particle.scale.x = particle.scale.y = particle.initialSize + pnt * particle.sizeChange * particle.sizeChange;
 		}
 	}
 }
