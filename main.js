@@ -16,19 +16,21 @@ class ParticleSystem extends PIXI.Container {
 			this.addChild(particle);
 			this.particles.push(particle);
 
-			let angle = Math.random() * Math.PI * 2;
+			// let angle = (i / count) * Math.PI * 2;
+			let angle = Math.random() * Math.PI * 0.5 - Math.PI * 0.75;
 			let radius = Math.random() * 50;
-			particle.initialPosition = [400 + Math.cos(angle) * radius, 225 + Math.sin(angle) * radius];
+			particle.initialPosition = [400 + Math.cos(angle) * radius, 500 + Math.sin(angle) * radius];
 
-			let speed = Math.random() * 1 + 0.1;
+			let speed = Math.random() * 1 + 0.4;
 			particle.initialVelocity = [Math.cos(angle) * speed, Math.sin(angle) * speed - 0.2];
 
 			particle.rotation = Math.random() * 2 * Math.PI;
 			particle.angularVelocity = Math.random() * 20 - 10;
 
 			particle.initialSize = 0.5;
-			particle.sizeChange = (i / count - 0.5) * 1.5;
+			particle.sizeChange = (i / count - 0.5) * 1;
 
+			// particle.offset = i / count;
 			particle.offset = Math.random();
 		}
 
@@ -104,7 +106,7 @@ class Game {
 	}
 	start() {	
 		this.isRunning = true;
-		this.t0 = Date.now();
+		this.t0 = Date.now() * 0.2;
 		update.bind(this)();
 		function update(){
 			if ( ! this.isRunning) return;
@@ -122,7 +124,7 @@ class Game {
 		this.renderer.render(this.stage);
 	}
 	tick() {
-		let gt = Date.now();
+		let gt = Date.now() * 0.2;
 		let lt = (gt-this.t0) % this.totalDuration;
 		for (let i=0; i<this.effects.length; i++) {
 			let eff = this.effects[i];
