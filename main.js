@@ -16,22 +16,24 @@ class ParticleSystem extends PIXI.Container {
 			this.addChild(particle);
 			this.particles.push(particle);
 
-			// let angle = (i / count) * Math.PI * 2;
-			let angle = Math.random() * Math.PI * 0.5 - Math.PI * 0.75;
-			let radius = Math.random() * 50;
+			let spread = Math.PI * 0.5;
+			let lean = Math.PI * 0.5;
+			let angle = Math.random() * spread - (lean + spread * 0.5);
+			let radius = Math.random() * 30;
 			particle.initialPosition = [400 + Math.cos(angle) * radius, 500 + Math.sin(angle) * radius];
 
-			let speed = Math.random() * 1 + 0.4;
+			let speed = Math.random() * 1.5 + 0.2;
+			// let speed = Math.random() * 1.0 + 0.5;
 			particle.initialVelocity = [Math.cos(angle) * speed, Math.sin(angle) * speed - 0.2];
 
 			particle.rotation = Math.random() * 2 * Math.PI;
 			particle.angularVelocity = Math.random() * 20 - 10;
 
 			particle.initialSize = 0.5;
-			particle.sizeChange = (i / count - 0.5) * 1;
+			particle.sizeChange = Math.random() * 0.5;
 
-			// particle.offset = i / count;
-			particle.offset = Math.random();
+			particle.offset = Math.random() * 0.4;
+			particle.random = Math.random();
 		}
 
 		this.gravity = 0.001;
@@ -43,10 +45,11 @@ class ParticleSystem extends PIXI.Container {
 	explosionTick(nt, lt){
 		for (let i = 0; i < this.particles.length; i++) {
 			let particle = this.particles[i];
-			let num = ("000"+Math.floor(((5 * nt + particle.offset) % 1)*8)).substr(-3);
+			let num = ("000"+Math.floor(((5 * nt + particle.random) % 1)*8)).substr(-3);
 			game.setTexture(particle,"CoinsGold"+num);
 			particle.x = particle.initialPosition[0] + lt * particle.initialVelocity[0];
 			particle.y = particle.initialPosition[1] + lt * particle.initialVelocity[1] + lt * lt * this.gravity;
+			this.wallBounce(particle);
 
 			particle.rotation = nt * particle.angularVelocity;
 
@@ -58,14 +61,23 @@ class ParticleSystem extends PIXI.Container {
 			let particle = this.particles[i];
 			let pnt = (nt + particle.offset) % 1
 			let plt = this.duration * pnt;
-			let num = ("000"+Math.floor(((5 * pnt) % 1)*8)).substr(-3);
+			let num = ("000"+Math.floor(((5 * pnt + particle.random) % 1)*8)).substr(-3);
 			game.setTexture(particle,"CoinsGold"+num);
 			particle.x = particle.initialPosition[0] + plt * particle.initialVelocity[0];
 			particle.y = particle.initialPosition[1] + plt * particle.initialVelocity[1] + plt * plt * this.gravity;
+			this.wallBounce(particle);
 
 			particle.rotation = pnt * particle.angularVelocity;
 
 			particle.scale.x = particle.scale.y = particle.initialSize + pnt * particle.sizeChange * particle.sizeChange;
+		}
+	}
+	wallBounce(particle){
+		if (particle.x > 800) {
+			particle.x = 800 - (particle.x - 800) * 0.35;
+		}
+		if (particle.x < 0) {
+			particle.x = -particle.x * 0.35;
 		}
 	}
 }
@@ -106,7 +118,7 @@ class Game {
 	}
 	start() {	
 		this.isRunning = true;
-		this.t0 = Date.now() * 0.2;
+		this.t0 = Date.now();
 		update.bind(this)();
 		function update(){
 			if ( ! this.isRunning) return;
@@ -124,7 +136,7 @@ class Game {
 		this.renderer.render(this.stage);
 	}
 	tick() {
-		let gt = Date.now() * 0.2;
+		let gt = Date.now();
 		let lt = (gt-this.t0) % this.totalDuration;
 		for (let i=0; i<this.effects.length; i++) {
 			let eff = this.effects[i];
