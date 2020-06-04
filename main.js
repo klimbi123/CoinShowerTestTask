@@ -4,11 +4,10 @@ class ParticleSystem extends PIXI.Container {
 	constructor() {
 		super();
 		this.start    = 0;
-		this.duration = 2000;
-
-		Math.random()
-		this.particles = [];
+		this.duration = 3000;
 		let count = 100;
+
+		this.particles = [];
 		for (let i = 0; i < count; i++) {
 			let particle = game.sprite("CoinsGold000");
 			particle.pivot.x = particle.width / 2;
@@ -17,29 +16,39 @@ class ParticleSystem extends PIXI.Container {
 			this.particles.push(particle);
 
 			let spread = Math.PI * 0.5;
-			let lean = Math.PI * 0.5;
-			let angle = Math.random() * spread - (lean + spread * 0.5);
+			let direction = Math.PI * 0.5;
+			let angle = Math.random() * spread - (direction + spread * 0.5);
+
 			let radius = Math.random() * 30;
 			particle.initialPosition = [400 + Math.cos(angle) * radius, 500 + Math.sin(angle) * radius];
 
 			let speed = Math.random() * 1.5 + 0.2;
-			// let speed = Math.random() * 1.0 + 0.5;
 			particle.initialVelocity = [Math.cos(angle) * speed, Math.sin(angle) * speed - 0.2];
 
 			particle.rotation = Math.random() * 2 * Math.PI;
 			particle.angularVelocity = Math.random() * 20 - 10;
 
 			particle.initialSize = 0.5;
-			particle.sizeChange = Math.random() * 0.5;
+			// Scaling to make it seems like coins are flying at the player.
+			// Rendering is done from first added coin to last added coin, 
+			// so coins near the end of the queue are allowed to grow bigger.
+			// Otherwise the smaller (further) coins would appear in front of bigger (closer) coins.
+			particle.sizeChange = (i / count) * 1.2;
 
-			particle.offset = Math.random() * 0.4;
+			particle.startOffset = (i / count) * 0.4;
 			particle.random = Math.random();
 		}
 
 		this.gravity = 0.001;
 	}
 	animTick(nt,lt,gt) {
-		//this.explosionTick(nt, lt);
+		// I initially made explosion effect as the tick timings provided are all particle system ones.
+		// If confuses me a bit as to why nt, lt and gt are provided instead of deltaTime.
+		// It seems to me like particle system itself should be responsible for 
+		// keeping its normalized, local, global and particle specific times.
+		// I assume the time is provided like that so the system wouldn't rely on framerate or previous frame.
+		// This way the animation could be played backwards too.
+		// this.explosionTick(nt, lt);
 		this.continuousShowerTick(nt);
 	}
 	explosionTick(nt, lt){
@@ -53,14 +62,17 @@ class ParticleSystem extends PIXI.Container {
 
 			particle.rotation = nt * particle.angularVelocity;
 
-			particle.scale.x = particle.scale.y = particle.initialSize + nt * particle.sizeChange * particle.sizeChange;
+			particle.scale.x = particle.scale.y = particle.initialSize + nt * particle.sizeChange;
 		}
 	}
 	continuousShowerTick(nt){
 		for (let i = 0; i < this.particles.length; i++) {
 			let particle = this.particles[i];
-			let pnt = (nt + particle.offset) % 1
+
+			// Getting particle specific times.
+			let pnt = (nt + particle.startOffset) % 1
 			let plt = this.duration * pnt;
+
 			let num = ("000"+Math.floor(((5 * pnt + particle.random) % 1)*8)).substr(-3);
 			game.setTexture(particle,"CoinsGold"+num);
 			particle.x = particle.initialPosition[0] + plt * particle.initialVelocity[0];
@@ -69,7 +81,7 @@ class ParticleSystem extends PIXI.Container {
 
 			particle.rotation = pnt * particle.angularVelocity;
 
-			particle.scale.x = particle.scale.y = particle.initialSize + pnt * particle.sizeChange * particle.sizeChange;
+			particle.scale.x = particle.scale.y = particle.initialSize + pnt * particle.sizeChange;
 		}
 	}
 	wallBounce(particle){
